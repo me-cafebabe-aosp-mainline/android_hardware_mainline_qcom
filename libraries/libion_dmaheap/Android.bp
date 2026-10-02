@@ -1,0 +1,17 @@
+//
+// SPDX-FileCopyrightText: The LineageOS Project
+// SPDX-License-Identifier: Apache-2.0
+//
+
+// Drop-in replacement for the legacy libion.so, backed by dma-buf heaps, for
+// vendor blobs built for msm ION. Blobs get linked against it at extraction.
+cc_library_shared {
+    name: "libion_dmaheap",
+    vendor: true,
+    srcs: ["ion_dmaheap.c"],
+    shared_libs: ["liblog"],
+    cflags: [
+        "-Wall",
+        "-Werror",
+    ],
+}
