@@ -8,10 +8,11 @@
  * that open the device and issue the ioctls themselves instead of using
  * libion.
  *
- * Such blobs get their open() and ioctl() imports renamed to
- * ion_legacy_open() and ion_legacy_ioctl() at extraction. Opening /dev/ion
- * then yields an fd of /dev/dma_heap, and ION ioctls on it are served by the
- * libion API of this library. Everything else is passed through.
+ * Such blobs get their open() (or FORTIFY's __open_2()) and ioctl() imports
+ * renamed to ion_legacy_open() (or ion_legacy_open_2()) and
+ * ion_legacy_ioctl() at extraction. Opening /dev/ion then yields an fd of
+ * /dev/dma_heap, and ION ioctls on it are served by the libion API of this
+ * library. Everything else is passed through.
  */
 
 #define LOG_TAG "ion_dmaheap"
@@ -35,6 +36,9 @@ int ion_free(int fd, ion_user_handle_t handle);
 int ion_share(int fd, ion_user_handle_t handle, int* share_fd);
 int ion_import(int fd, int share_fd, ion_user_handle_t* handle);
 int ion_sync_fd(int fd, int handle_fd);
+
+/* From bionic's FORTIFY headers, which are not always included */
+int __open_2(const char* path, int flags);
 
 #define ION_DEV "/dev/ion"
 #define DMA_HEAP_DIR "/dev/dma_heap"
@@ -79,6 +83,12 @@ int ion_legacy_open(const char* path, int flags, ...) {
     if (path && !strcmp(path, ION_DEV)) return ion_open();
 
     return open(path, flags, mode);
+}
+
+int ion_legacy_open_2(const char* path, int flags) {
+    if (path && !strcmp(path, ION_DEV)) return ion_open();
+
+    return __open_2(path, flags);
 }
 
 /* Whether fd is /dev/dma_heap, as returned by ion_open() */
